@@ -1,0 +1,276 @@
+import mlflow
+
+from mlflow.tracking import MlflowClient
+
+
+def automate_champion_challenger():
+
+    print(
+        "[INFO] Starting Automated Model Lifecycle Manager..."
+    )
+
+    client = MlflowClient()
+
+    model_name = (
+        "Employee_Attrition_Production_Model"
+    )
+
+    metric_to_optimize = "recall"
+
+    try:
+
+        # -----------------------------------------------------
+        # 1. Discover All Registered Model Versions
+        # -----------------------------------------------------
+
+        all_versions = client.search_model_versions(
+            f"name='{model_name}'"
+        )
+
+        # -----------------------------------------------------
+        # 2. Move New Models to Staging
+        # -----------------------------------------------------
+
+        new_models = [
+            mv
+            for mv in all_versions
+            if mv.current_stage == "None"
+        ]
+
+        if new_models:
+
+            print(
+                f"\n[INFO] Found {len(new_models)} "
+                "new model(s). Moving them to Staging..."
+            )
+
+            for mv in new_models:
+
+                client.transition_model_version_stage(
+                    name=model_name,
+                    version=mv.version,
+                    stage="Staging",
+                    archive_existing_versions=False
+                )
+
+                print(
+                    f"  -> Version {mv.version} "
+                    "is now in Staging."
+                )
+
+        # -----------------------------------------------------
+        # 3. Refresh Registry Information
+        # -----------------------------------------------------
+
+        all_versions = client.search_model_versions(
+            f"name='{model_name}'"
+        )
+
+        staging_models = [
+            mv
+            for mv in all_versions
+            if mv.current_stage == "Staging"
+        ]
+
+        if not staging_models:
+
+            print(
+                "\n[INFO] No models in Staging "
+                "to evaluate. Exiting."
+            )
+
+            return
+
+        # -----------------------------------------------------
+        # 4. Evaluate Challenger Models
+        # -----------------------------------------------------
+
+        print(
+            "\n[INFO] Evaluating Staging candidates..."
+        )
+
+        best_challenger = None
+        best_challenger_score = -1.0
+
+        for mv in staging_models:
+
+            run = client.get_run(
+                mv.run_id
+            )
+
+            score = run.data.metrics.get(
+                metric_to_optimize,
+                0.0
+            )
+
+            print(
+                f"  -> Staging Candidate: "
+                f"Version {mv.version} | "
+                f"{metric_to_optimize}: {score:.4f}"
+            )
+
+            if score > best_challenger_score:
+
+                best_challenger_score = score
+                best_challenger = mv
+
+        print(
+            f"\n[INFO] Best Challenger is "
+            f"Version {best_challenger.version} "
+            f"({metric_to_optimize}: "
+            f"{best_challenger_score:.4f})"
+        )
+
+        # -----------------------------------------------------
+        # 5. Find Current Production Champion
+        # -----------------------------------------------------
+
+        production_models = [
+            mv
+            for mv in all_versions
+            if mv.current_stage == "Production"
+        ]
+
+        current_champion = (
+            production_models[0]
+            if production_models
+            else None
+        )
+
+        promote_challenger = False
+
+        # -----------------------------------------------------
+        # 6. Compare Challenger with Champion
+        # -----------------------------------------------------
+
+        if not current_champion:
+
+            print(
+                "[INFO] No model currently in Production. "
+                "Challenger becomes the first Production model."
+            )
+
+            promote_challenger = True
+
+        else:
+
+            champ_run = client.get_run(
+                current_champion.run_id
+            )
+
+            champ_score = champ_run.data.metrics.get(
+                metric_to_optimize,
+                0.0
+            )
+
+            print(
+                f"[INFO] Current Production Champion: "
+                f"Version {current_champion.version} | "
+                f"{metric_to_optimize}: "
+                f"{champ_score:.4f}"
+            )
+
+            # -------------------------------------------------
+            # 7. Champion vs Challenger
+            # -------------------------------------------------
+
+            if best_challenger_score > champ_score:
+
+                print(
+                    "[SUCCESS] Challenger beat the Champion!"
+                )
+
+                promote_challenger = True
+
+            else:
+
+                print(
+                    "[INFO] Challenger did not beat "
+                    "the Champion. Champion remains."
+                )
+
+        # -----------------------------------------------------
+        # 8. Promote Challenger if Better
+        # -----------------------------------------------------
+
+        if promote_challenger:
+
+            print(
+                f"\n[INFO] Promoting Version "
+                f"{best_challenger.version} "
+                "to Production..."
+            )
+
+            client.transition_model_version_stage(
+                name=model_name,
+                version=best_challenger.version,
+                stage="Production",
+                archive_existing_versions=False
+            )
+
+            # Archive previous champion
+
+            if current_champion:
+
+                print(
+                    f"[INFO] Archiving previous Champion "
+                    f"(Version {current_champion.version})..."
+                )
+
+                client.transition_model_version_stage(
+                    name=model_name,
+                    version=current_champion.version,
+                    stage="Archived",
+                    archive_existing_versions=False
+                )
+
+        # -----------------------------------------------------
+        # 9. Archive Remaining Staging Models
+        # -----------------------------------------------------
+
+        final_versions = client.search_model_versions(
+            f"name='{model_name}'"
+        )
+
+        remaining_staging = [
+            mv
+            for mv in final_versions
+            if mv.current_stage == "Staging"
+        ]
+
+        if remaining_staging:
+
+            print(
+                "\n[INFO] Cleaning up Staging area..."
+            )
+
+            for mv in remaining_staging:
+
+                print(
+                    f"  -> Archiving Version "
+                    f"{mv.version} "
+                    "(did not become Champion)"
+                )
+
+                client.transition_model_version_stage(
+                    name=model_name,
+                    version=mv.version,
+                    stage="Archived",
+                    archive_existing_versions=False
+                )
+
+        print(
+            "\n[SUCCESS] Automated Model Lifecycle "
+            "execution complete!"
+        )
+
+    except Exception as e:
+
+        print(
+            f"[ERROR] Failed to automate lifecycle: {e}"
+        )
+
+
+if __name__ == "__main__":
+
+    automate_champion_challenger()
