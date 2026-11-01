@@ -1,0 +1,8 @@
+{
+    "stage": "Employee Attrition - Model Quality Gate",
+    "dataset": "HR Employee Attrition",
+    "metric": "recall",
+    "minimum_value": 0.65,
+    "actual_value": 0.6596,
+    "status": "PASSED"
+}

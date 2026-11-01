@@ -215,9 +215,9 @@ def get_employee_attrition_schema():
             Check.ge(0)
         ),
 
-        # ---------------------------------------------------------
+        
         # Target Variable
-        # ---------------------------------------------------------
+      
 
         "Attrition": Column(
             pa.String,
