@@ -1,0 +1,10 @@
+{
+    "model_name": "Employee_Attrition_Production_Model",
+    "model_version": "1",
+    "model_stage": "Production",
+    "run_id": "6651b89a50294a618c3e04d5176ef03d",
+    "model_source": "models:/m-d431bc770afd4471901fdb0b33934d26",
+    "model_id": "m-d431bc770afd4471901fdb0b33934d26",
+    "preprocessor_artifact": "deployment/preprocessor.pkl",
+    "source": "MLflow"
+}
