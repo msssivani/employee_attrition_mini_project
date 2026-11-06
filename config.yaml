@@ -1,8 +1,9 @@
-#lab7-9 simple pipeline
+
+# lab7-9 simple pipeline
 
 data:
-  raw_path: data\raw\WA_Fn-UseC_-HR-Employee-Attrition.csv
-  processed_dir: data\processed
+  raw_path: data/raw/WA_Fn-UseC_-HR-Employee-Attrition.csv
+  processed_dir: data/processed
   target_column: Attrition
   id_column: EmployeeNumber
 
@@ -16,21 +17,19 @@ model:
   class_weight: balanced
   probability: true
   random_state: 42
+
 cv:
   n_splits: 5
   shuffle: true
   random_state: 42
+
 mlflow:
-  # Leave empty for local MLflow. For GitHub Actions, set the
-  # MLFLOW_TRACKING_URI environment variable or put a server URI here.
   tracking_uri: ""
   experiment_name: employee_attrition_model_training_lab7
 
 registry:
   model_name: Employee_Attrition_Production_Model
   decision_metric: recall
-
-
 
 quality_gate:
   metric: recall
