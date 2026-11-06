@@ -1,0 +1,39 @@
+# Kubernetes API version
+apiVersion: apps/v1
+
+# Creates a Deployment
+kind: Deployment
+
+metadata:
+  name: employee-attrition-api
+  labels:
+    app: employee-attrition-api
+
+spec:
+  # Number of Pods to run
+  replicas: 1
+
+  # Identifies the Pods managed by this Deployment
+  selector:
+    matchLabels:
+      app: employee-attrition-api
+
+  # Pod configuration
+  template:
+    metadata:
+      labels:
+        app: employee-attrition-api
+
+    spec:
+      containers:
+        - name: employee-attrition-api
+
+          # Employee Attrition prediction API Docker image
+          image: employee-attrition-prediction-api:1.0
+
+          # Use local image if available
+          imagePullPolicy: IfNotPresent
+
+          # API port inside the container
+          ports:
+            - containerPort: 8000

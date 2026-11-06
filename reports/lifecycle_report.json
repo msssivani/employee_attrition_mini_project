@@ -1,0 +1,12 @@
+{
+    "status": "not_promoted",
+    "promoted": false,
+    "candidate_version": "7",
+    "production_version_after": "1",
+    "model_name": "Employee_Attrition_Production_Model",
+    "decision_metric": "recall",
+    "candidate_score": 0.553191,
+    "production_score_before": 0.6595744680851063,
+    "error": null,
+    "timestamp": "2026-11-06T10:42:23.362296+00:00"
+}

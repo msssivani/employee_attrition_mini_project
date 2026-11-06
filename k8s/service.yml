@@ -1,0 +1,26 @@
+# Kubernetes API version
+apiVersion: v1
+
+# Creates a Service
+kind: Service
+
+metadata:
+  # Name of the Kubernetes Service
+  name: employee-attrition-api-service
+
+spec:
+  # Connects this Service to matching Pods
+  selector:
+    app: employee-attrition-api
+
+  # Exposes the application through a NodePort
+  type: NodePort
+
+  ports:
+    - protocol: TCP
+
+      # Port exposed by the Service
+      port: 8000
+
+      # Port on which the container listens
+      targetPort: 8000

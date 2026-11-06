@@ -1,0 +1,53 @@
+name: Lab 13 - Employee Attrition Self Hosted Runner Test
+
+on:
+  # Run when code is pushed to lab13-integration branch
+  push:
+    branches:
+      - lab13-integration
+
+  # Allows manual execution
+  workflow_dispatch:
+
+jobs:
+  test-runner:
+    runs-on: [self-hosted, Windows, X64]
+
+    steps:
+
+      # Step 1: Check Python installation
+      - name: Check Python
+        shell: powershell
+        run: python --version
+
+      # Step 2: Check Git installation
+      - name: Check Git
+        shell: powershell
+        run: git --version
+
+      # Step 3: Check Docker installation and availability
+      - name: Check Docker
+        shell: powershell
+        run: docker info
+
+      # Step 4: Check Kubernetes connection
+      - name: Check Kubernetes
+        shell: powershell
+        run: kubectl get nodes
+
+      # Step 5: Check Employee Attrition project directory
+      - name: Check Project
+        shell: powershell
+        run: |
+          Write-Host "Runner: $env:RUNNER_NAME"
+          Write-Host "Workspace: $env:GITHUB_WORKSPACE"
+
+          $projectPath = "D:\ml_project(assignment_mlops)"
+
+          if (Test-Path $projectPath) {
+              Write-Host "Employee Attrition project directory found."
+          }
+          else {
+              Write-Host "Employee Attrition project directory not found."
+              exit 1
+          }

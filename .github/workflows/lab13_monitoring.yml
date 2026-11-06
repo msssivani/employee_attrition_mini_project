@@ -1,0 +1,45 @@
+name: Lab 13 - Employee Attrition MLOps Monitoring
+
+# Integration test: Process a genuinely new incoming batch
+
+on:
+  # Allows manual execution
+  workflow_dispatch:
+
+  # Automatically executes every hour
+  schedule:
+    - cron: "17 * * * *"
+
+jobs:
+  mlops-monitoring:
+    runs-on: [self-hosted, Windows, X64]
+
+    steps:
+
+      # Step 1: Run the MLOps monitoring pipeline
+      - name: Run Employee Attrition monitoring trigger
+        shell: powershell
+        run: |
+          Set-Location "D:\ml_project(assignment_mlops)"
+          & ".\.venv\Scripts\python.exe" ".\src\mlops_pipeline\12_monitor_trigger.py"
+
+      # Step 2: Display the monitoring report
+      - name: Show monitoring result
+        shell: powershell
+        run: |
+          Set-Location "D:\ml_project(assignment_mlops)"
+
+          if (Test-Path ".\outputs\monitoring\monitor_trigger_report.json") {
+              Get-Content ".\outputs\monitoring\monitor_trigger_report.json"
+          } else {
+              Write-Host "Monitoring report was not generated."
+              exit 1
+          }
+
+      # Step 3: Verify Kubernetes deployment
+      - name: Verify Kubernetes
+        shell: powershell
+        run: |
+          kubectl get deployment employee-attrition-api
+          kubectl get service employee-attrition-api-service
+          kubectl get pods

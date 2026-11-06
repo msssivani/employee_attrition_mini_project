@@ -6,12 +6,7 @@ on:
     branches: [main, master]
     paths:
       - "config.yaml"
-
-
-
-      #pending
       - "src/mlops_pipeline/**"
-      
       - "requirements.txt"
       - "data/raw/WA_Fn-UseC_-HR-Employee-Attrition.csv"
       - ".github/workflows/lab8_ci.yml"
