@@ -29,7 +29,7 @@ spec:
         - name: employee-attrition-api
 
           # Employee Attrition prediction API Docker image
-          image: employee-attrition-prediction-api:1.0
+          image: employee-attrition-api:v1
 
           # Use local image if available
           imagePullPolicy: IfNotPresent
